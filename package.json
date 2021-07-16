@@ -8,7 +8,8 @@
     "cli": "moleculer connect NATS",
     "ci": "jest --watch",
     "test": "jest --coverage",
-    "lint": "eslint services"
+    "lint": "eslint services",
+    "lint:fix": "eslint services --fix"
   },
   "keywords": [
     "microservices",
@@ -28,7 +29,7 @@
     "moleculer-db": "^0.8.14",
     "moleculer-db-adapter-mongoose": "^0.8.10",
     "moleculer-web": "^0.9.1",
-    "mongoose": "^5.13.2",
+    "mongoose": "^5.11.15",
     "nats": "^1.4.12",
     "valid-url": "^1.0.9"
   },

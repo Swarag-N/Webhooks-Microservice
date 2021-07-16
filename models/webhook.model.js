@@ -23,11 +23,4 @@ let WebHookSchema = new Schema({
 	},
 });
 
-WebHookSchema.pre('save', function(next) {
-  if (!validUrl.isWebUri(this.hookURL)){
-    throw new Error('Hook URL is not Proper');
-  }
-  next()
-});
-
 module.exports = mongoose.model("WebHook", WebHookSchema);
