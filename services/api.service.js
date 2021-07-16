@@ -82,7 +82,7 @@ module.exports = {
 		async listWebHooks (req, res) {
 			const {pageSize} = this.settings;
 			const str = await this.broker.call("webhooks.list",{pageSize}); 
-			res.send(str);
+			res.send({str,message:`${this.broker.nodeid}`});
 		},
 
 		/**

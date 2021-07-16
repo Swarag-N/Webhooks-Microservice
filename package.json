@@ -9,7 +9,10 @@
     "ci": "jest --watch",
     "test": "jest --coverage",
     "lint": "eslint services",
-    "lint:fix": "eslint services --fix"
+    "lint:fix": "eslint services --fix",
+    "dc:up": "docker-compose up --build -d",
+    "dc:logs": "docker-compose logs -f",
+    "dc:down": "docker-compose down"
   },
   "keywords": [
     "microservices",
@@ -23,6 +26,7 @@
     "moleculer-repl": "^0.6.4"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
     "moleculer": "^0.14.13",

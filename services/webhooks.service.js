@@ -3,7 +3,8 @@ const DbService = require("moleculer-db");
 const MongooseAdapter = require("moleculer-db-adapter-mongoose");
 const Webhook = require("../models/webhook.model");
 const validUrl = require("valid-url");
-
+const axios = require('axios');
+const { response } = require("express");
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
  */
@@ -22,7 +23,41 @@ module.exports = {
 	 * Settings
 	 */
 	settings: {
+		// Trigger Batch Size
+		chunkSize : 10
 
+	},
+
+	methods:{
+
+		chunkWebHooks(webHooksArray, chunkSize){
+			let chunks = [];
+			let i = 0;
+			let n = webHooksArray.length;
+			
+			while (i < n) {
+				chunks.push(webHooksArray.slice(i, i += chunkSize));
+			}
+
+			return chunks
+		},
+
+
+		makeRequests(webHooksArray){
+			let failedWebHooks = []
+			let successWebHooks = []
+			let promises = []
+
+			try {
+				webHooksArray.forEach(webHook => {
+					this.logger.info(webHook.hookURL)
+				});
+			} catch (error) {
+				
+			}
+
+			// return {failedWebHooks,successWebHooks}
+		}
 	},
 
 	/**
@@ -97,9 +132,10 @@ module.exports = {
 			async handler(ctx) {
 				// Use Axios to Send IPaddres
 				const webHooks = await this.adapter.find({});
-				webHooks.forEach(webhook => {
-					this.logger.info(webhook._id)
-				});
+				let chunks = await this.chunkWebHooks(webHooks,this.settings.chunkSize);
+				chunks.forEach(subset=>{
+					this.makeRequests(subset)
+				})
 				return `Welcome, ${ctx.params.ipadr}`;
 			}
 		}
