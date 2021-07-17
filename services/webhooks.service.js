@@ -24,8 +24,8 @@ module.exports = {
 	 */
 	settings: {
 		// Trigger Batch Size
-		chunkSize : 10
-
+		BATCH_SIZE : 10,
+		RETRY_COUNT: 3,
 	},
 
 
@@ -60,6 +60,26 @@ module.exports = {
 
 		/**
 		 * 
+		 * @param { Response[] } responseArray
+		 */
+		groupResponses(responseArray) {
+			
+			let success = [];
+			let failed =[];
+			
+			responseArray.forEach(response=>{
+				if(response.success){
+					success.push(response)
+				}else{
+					failed.push(response)
+				}
+			})
+
+			return {success,failed};
+		},
+
+		/**
+		 * 
 		 * @param {WebHooks[]} webHooksArray 
 		 * @param {String} ipadr - IP Address of Client
 		 *  
@@ -67,55 +87,72 @@ module.exports = {
 		 * @returns {WebHooks{_id}[] success, WebHooks{_id}[] failed }  
 		 */
 		async makeRequests(webHooksArray,ipadr){
-			let failedWebHooks = []
-			let successWebHooks = []
-			let promises = []
-
-			try {
-				webHooksArray.forEach(webHook => {
-					this.logger.info(webHook.hookURL)
-					promises.push(
-						axios
-						.get(webHook.hookURL,{data:ipadr})
-						.then(function(response) {
-							return {
-								success: true,
-								data: response.data
-							};
-						})
-						.catch(function(error) {
-							return { success: false };
-						})
-					)
-				})
-				return Promise.all(promises)
-			} catch (error) {
-				console.log(error.message);
-			}
-			return {failedWebHooks,successWebHooks}
-		},
-
-
-		async initateProcessing(){
-			let chunks = await this.chunkWebHooks(webHooks,this.settings.chunkSize);
-			chunks.forEach(async subset=>{
-				let responses = this.makeRequests(subset,ctx.params.ipadr)
-				try {
-					responses.then(([...resp])=>{console.log("########")}).catch(([...e])=>{console.log("*******")})	
-				} catch (error) {
-					console.log(error)
+			let prom = webHooksArray.map(
+				async hook=>{
+					const {hookURL,_id,name} = hook
+					return axios.get(hook.hookURL,{ipadr})
+					.then((res)=>{
+						let flag = false;
+						if(res.status == 200){
+							flag=true;
+						}				
+						return {success:flag,hookURL,_id,name}
+					})
+					.catch(err=>({success:false,hookURL,_id,name}))
 				}
-			})
+			)
+
+			let responses = await Promise.all(prom);
+			return this.groupResponses(responses)
 		},
 
-		groupArray(array, property) {
-			var hash = {};
-			for (var i = 0; i < array.length; i++) {
-				if (!hash[array[i][property]]) hash[array[i][property]] = [];
-				hash[array[i][property]].push(array[i]);
+
+		async initateProcessing(webHooks,ipadr){
+			const {BATCH_SIZE,RETRY_COUNT} = this.settings; 
+			let chunks = await this.chunkWebHooks(webHooks,BATCH_SIZE);
+			let failedRequests = [];
+			let successRequests = [];
+
+			let batchRequest = chunks.map(subset=>(this.makeRequests(subset,ipadr)))
+			let batchResponse = await Promise.all(batchRequest);
+
+			batchResponse.forEach(batch=>{
+				const {success,failed} = batch
+				failedRequests.push(...failed);
+				successRequests.push(...success);
+			})
+
+			/**
+			 * 
+			 * {
+			 * 		success:[],
+			 * 		retrySuccess1:[],
+			 * 		retrySuccess2:[],
+			 * 		... retrySuccess${RETRY_COUNT-1}:[],
+			 * 		
+			 * 		failed: []
+			 * 
+			 * }
+			 */
+			let retryRespones = {successRequests}
+
+			for(let i=1;i<RETRY_COUNT;i++){
+				let failedChunks = this.chunkWebHooks(failedRequests,BATCH_SIZE);
+				failedRequests = [];
+				let retryRequests = failedChunks.map(subset=>(this.makeRequests(subset,ipadr)))
+				let retryResponses = await Promise.all(retryRequests);
+				retryResponses.forEach(batch=>{
+					const {success,failed} = batch
+					failedRequests.push(...failed);
+					retryRespones[`retrySuccess${i}`] =success;
+				})
 			}
-			return hash;
-		}
+
+			retryRespones['failed']=failedRequests;
+			return retryRespones;
+		},
+
+		
 	},
 
 	/**
@@ -130,9 +167,9 @@ module.exports = {
 	 */
 	actions: {
 
-
 		/**
-		 * DbService Mixin of Molecuar Js Provides 
+		 * DbService Mixin of 
+		 * Molecuar Js Provides 
 		 * 
 		 * Register alias of Create
 		 * Update 
@@ -197,25 +234,14 @@ module.exports = {
 			async handler(ctx) {
 				// Use Axios to Send IPaddres
 				try {
-
-				
-					const webHooks = await this.adapter.find({});
-					let prom = webHooks.map(async hook=>(axios.get(hook.hookURL,{ip:ctx.params.ipadr})
-					.then(res=>({success:true,id:hook._id}))
-					.catch(err=>({success:false,id:hook._id})))
-					)
-
-					let repsponses = await Promise.all(prom);
-					let data = this.groupArray(repsponses,'success')
-					this.logger.info(data);
+					const {ipadr} = ctx.params;
+					const webHooks = await this.adapter.find({});;
+					let data = await this.initateProcessing(webHooks,ipadr)
 					
 					return data
 				} catch (error) {
 					console.log(error)
-					// throw error
-				}
-				return {}
-				
+				}				
 			}
 		}
 
