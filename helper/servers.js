@@ -1,15 +1,16 @@
 const http = require('http');
+const qs = require('querystring')
 
 const requestListener = function (req, res) {
-    // console.log(typeof(req))
+    
     console.log(req.hostname)
     let body = '';
     req.on('data', chunk => {
         body += chunk.toString(); // convert Buffer to string
     });
     req.on('end', () => {
-        console.table
-        (JSON.parse(body));
+        // console.log(qs.parse(body))
+        console.table(JSON.parse(body));
     });
     res.writeHead(200);
     res.end('Hello, World!');

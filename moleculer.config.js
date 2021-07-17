@@ -1,5 +1,5 @@
 "use strict";
-
+require('dotenv').config()
 /**
  * Moleculer ServiceBroker configuration file
  *

@@ -1,0 +1,165 @@
+{
+	"info": {
+		"_postman_id": "027d1d22-c1d3-472d-97ab-75bf19f4ed97",
+		"name": "Testing Servers",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Server #0",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ip\":\"{{$randomIP}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{TESTSERVER}}0",
+					"host": [
+						"{{TESTSERVER}}0"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Server #1",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ip\":\"{{$randomIP}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{TESTSERVER}}1",
+					"host": [
+						"{{TESTSERVER}}1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Server #2",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ip\":\"{{$randomIP}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{TESTSERVER}}2",
+					"host": [
+						"{{TESTSERVER}}2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Server #3",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ip\":\"{{$randomIP}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{TESTSERVER}}3",
+					"host": [
+						"{{TESTSERVER}}3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Server #4",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"ip\":\"{{$randomIP}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{TESTSERVER}}4",
+					"host": [
+						"{{TESTSERVER}}4"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "TESTSERVER",
+			"value": "http://localhost:400"
+		}
+	]
+}

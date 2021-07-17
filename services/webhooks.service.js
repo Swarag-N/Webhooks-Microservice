@@ -3,8 +3,7 @@ const DbService = require("moleculer-db");
 const MongooseAdapter = require("moleculer-db-adapter-mongoose");
 const Webhook = require("../models/webhook.model");
 const validUrl = require("valid-url");
-const axios = require('axios');
-const { response } = require("express");
+const axios = require("axios");
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
  */
@@ -55,7 +54,7 @@ module.exports = {
 				chunks.push(webHooksArray.slice(i, i += chunkSize));
 			}
 
-			return chunks
+			return chunks;
 		},
 
 		/**
@@ -69,11 +68,11 @@ module.exports = {
 			
 			responseArray.forEach(response=>{
 				if(response.success){
-					success.push(response)
+					success.push(response);
 				}else{
-					failed.push(response)
+					failed.push(response);
 				}
-			})
+			});
 
 			return {success,failed};
 		},
@@ -81,46 +80,46 @@ module.exports = {
 		/**
 		 * 
 		 * @param {WebHooks[]} webHooksArray 
-		 * @param {String} ipadr - IP Address of Client
+		 * @param {String} postData - IP Address of Client
 		 *  
 		 * 
 		 * @returns {WebHooks{_id}[] success, WebHooks{_id}[] failed }  
 		 */
-		async makeRequests(webHooksArray,ipadr){
+		async makeRequests(webHooksArray,postData){
 			let prom = webHooksArray.map(
 				async hook=>{
-					const {hookURL,_id,name} = hook
-					return axios.get(hook.hookURL,{ipadr})
-					.then((res)=>{
-						let flag = false;
-						if(res.status == 200){
-							flag=true;
-						}				
-						return {success:flag,hookURL,_id,name}
-					})
-					.catch(err=>({success:false,hookURL,_id,name}))
+					const {hookURL,_id,name} = hook;
+					return axios.post(hook.hookURL,postData)
+						.then((res)=>{
+							let flag = false;
+							if(res.status == 200){
+								flag=true;
+							}				
+							return {success:flag,hookURL,_id,name};
+						})
+						.catch(err=>({success:false,hookURL,_id,name}));
 				}
-			)
+			);
 
 			let responses = await Promise.all(prom);
-			return this.groupResponses(responses)
+			return this.groupResponses(responses);
 		},
 
 
-		async initateProcessing(webHooks,ipadr){
+		async initateProcessing(webHooks,postData){
 			const {BATCH_SIZE,RETRY_COUNT} = this.settings; 
 			let chunks = await this.chunkWebHooks(webHooks,BATCH_SIZE);
 			let failedRequests = [];
 			let successRequests = [];
 
-			let batchRequest = chunks.map(subset=>(this.makeRequests(subset,ipadr)))
+			let batchRequest = chunks.map(subset=>(this.makeRequests(subset,postData)));
 			let batchResponse = await Promise.all(batchRequest);
 
 			batchResponse.forEach(batch=>{
-				const {success,failed} = batch
+				const {success,failed} = batch;
 				failedRequests.push(...failed);
 				successRequests.push(...success);
-			})
+			});
 
 			/**
 			 * 
@@ -134,21 +133,21 @@ module.exports = {
 			 * 
 			 * }
 			 */
-			let retryRespones = {successRequests}
+			let retryRespones = {successRequests};
 
 			for(let i=1;i<RETRY_COUNT;i++){
 				let failedChunks = this.chunkWebHooks(failedRequests,BATCH_SIZE);
 				failedRequests = [];
-				let retryRequests = failedChunks.map(subset=>(this.makeRequests(subset,ipadr)))
+				let retryRequests = failedChunks.map(subset=>(this.makeRequests(subset,postData)));
 				let retryResponses = await Promise.all(retryRequests);
 				retryResponses.forEach(batch=>{
-					const {success,failed} = batch
+					const {success,failed} = batch;
 					failedRequests.push(...failed);
 					retryRespones[`retrySuccess${i}`] =success;
-				})
+				});
 			}
 
-			retryRespones['failed']=failedRequests;
+			retryRespones["failed"]=failedRequests;
 			return retryRespones;
 		},
 
@@ -196,8 +195,9 @@ module.exports = {
 			 * */
 			async handler(ctx) {
 				try{
-					const {_id,name,hookURL} = ctx;
+					const {_id,name,hookURL} = ctx.params;
 					if(hookURL){
+						console.log(validUrl.isWebUri(hookURL))
 						if (!validUrl.isWebUri(hookURL)){
 							throw new Error("Hook Not Proper");
 						}
@@ -205,7 +205,7 @@ module.exports = {
 					const UpdatedWebHook = await this.adapter.updateById(_id,{name,hookURL});
 					return UpdatedWebHook;
 				}catch(error){
-					throw error
+					throw error;
 				}
 				
 			}
@@ -216,7 +216,7 @@ module.exports = {
 		/**
 		 * trigger
 		 * 
-		 * @description TODO
+		 * @description
 		 * Divide the Requests into Batches of 10, use Promise.all()
 		 * resolve all requests
 		 * 
@@ -235,12 +235,13 @@ module.exports = {
 				// Use Axios to Send IPaddres
 				try {
 					const {ipadr} = ctx.params;
-					const webHooks = await this.adapter.find({});;
-					let data = await this.initateProcessing(webHooks,ipadr)
+					const timeStamp = new Date().getTime();
+					const webHooks = await this.adapter.find({});
+					let data = await this.initateProcessing(webHooks,{ipadr,timeStamp});
 					
-					return data
+					return data;
 				} catch (error) {
-					console.log(error)
+					console.log(error);
 				}				
 			}
 		}

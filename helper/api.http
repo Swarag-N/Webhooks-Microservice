@@ -1,2 +1,54 @@
 
-GET http://localhost:4000/
+# Server 1
+GET / HTTP/1.1
+Host: localhost:4000
+Content-Type: application/json
+Content-Length: 30
+
+{
+    "ip":"126.183.76.98"
+}
+
+###
+# Server 2
+GET / HTTP/1.1
+Host: localhost:4001
+Content-Type: application/json
+Content-Length: 29
+
+{
+    "ip":"82.213.4.230"
+}
+###
+
+#Server 3
+GET / HTTP/1.1
+Host: localhost:4002
+Content-Type: application/json
+Content-Length: 30
+
+{
+    "ip":"111.136.222.1"
+}
+###
+
+#Server 4
+GET / HTTP/1.1
+Host: localhost:4003
+Content-Type: application/json
+Content-Length: 31
+
+{
+    "ip":"15.152.125.250"
+}
+###
+
+#Server 5
+GET / HTTP/1.1
+Host: localhost:4004
+Content-Type: application/json
+Content-Length: 30
+
+{
+    "ip":"189.42.97.217"
+}

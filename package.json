@@ -12,7 +12,8 @@
     "lint:fix": "eslint services --fix",
     "dc:up": "docker-compose up --build -d",
     "dc:logs": "docker-compose logs -f",
-    "dc:down": "docker-compose down"
+    "dc:down": "docker-compose down",
+    "targets": "node helper\\servers.js"
   },
   "keywords": [
     "microservices",
@@ -20,6 +21,7 @@
   ],
   "author": "Swarag-N",
   "devDependencies": {
+    "dotenv": "^10.0.0",
     "eslint": "^7.23.0",
     "jest": "^26.6.3",
     "jest-cli": "^26.6.3",
