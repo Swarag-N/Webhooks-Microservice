@@ -28,14 +28,18 @@
   - [Install](#install)
   - [Start locally](#start-locally)
   - [Start in Docker](#start-in-docker)
-  - [Running as microservices](#running-as-microservices)
   - [Development locally](#development-locally)
+  - [Target Server](#target-server)
+- [Testing Instructions](#testing-instructions)
+  - [Locally](#locally)
+  - [Docker Service](#docker-service)
 - [Tasks](#tasks)
 - [Development](#development)
   - [1. Product](#1-product)
-  - [2. Helper /Tester](#2-helper-tester)
+  - [2. Helper (Tester|Target)](#2-helper-testertarget)
 - [Product](#product)
   - [Services](#services)
+  - [Actions](#actions)
   - [Resources](#resources)
 - [moleculer-micro](#moleculer-micro)
   - [Usage](#usage)
@@ -103,6 +107,65 @@ npm run targets
 - Open the http://localhost:4003/ URL in your browser.
 - Open the http://localhost:4004/ URL in your browser.
 
+## Testing Instructions
+
+### Locally
+
+- Install Dependencies (Dev and Production)
+
+```bash
+npm ci     
+```
+
+- Start Target Servers : 5 Http Servers will Start 
+    1. PORT [4000 ... 4004] 
+    2. Logs the request 
+    3. Health Check [`http://localhost:4000/`](http://localhost:4000/)
+
+```bash
+npm run targets 
+```
+
+- Import Postman collections of API Service from `docs` folder
+
+- Start Service
+
+```bash
+npm run dev
+```
+
+
+Start the project with `npm run dev` command. 
+After starting, open the http://localhost:3000/list URL in your browser. 
+
+`call "webhooks.trigger" --ipadr "192.12.445.55"` - Call the `webhooks.trigger` action with the `ipadr` parameter
+
+o/p:
+┌───────────┬─────────────────┐
+│  (index)  │     Values      │
+├───────────┼─────────────────┤
+│   ipadr   │ '192.12.445.55' │
+│ timeStamp │  1626537496624  │
+└───────────┴─────────────────┘
+┌───────────┬─────────────────┐
+│  (index)  │     Values      │
+├───────────┼─────────────────┤
+│   ipadr   │ '192.12.445.55' │
+│ timeStamp │  1626537496624  │
+└───────────┴─────────────────┘
+
+### Docker Service
+
+- Import Postman collections of API Service from `docs` folder
+
+- Start Service
+
+```bash
+npm run dc:up
+```
+
+NOTE: Local Network is different from Internal Network, give external sites as Input 
+
 ## Tasks
 
 - [x]  Collect Info
@@ -124,15 +187,11 @@ Two Servers
 1. API Gateway
 2. DB
 3. Message Broker
-4. Web-Hook Initiator
-5. Admin Board
+4. Web-Hook Trigger Initiator
 
-### 2. Helper /Tester
 
-1. Listens for Requests
-2. Development Dependences  
-    1. Axios
-    2. Logger - Morgan
+### 2. Helper (Tester|Target)
+-  Listens for Requests
 
 ## Product
 - **api**: API Gateway services
@@ -167,6 +226,12 @@ Check `docs\demo.md`
     - [x]  `Dockerize` the Backend and the Moleculer microservice
     - [x]  WebHook Target URL Validation
 
+
+### Actions
+<a href="">
+    <img alt="Actions of Webhooks Microservice API" title="Actions" src="docs\assets\Actions.png" width=250>
+</a>
+
 ### Resources
 
 [Dyte Problem Statements](https://docs.google.com/document/d/1iI_rj9f-WCPZOr6DusCdmYacxpXRXt3WwYoYMm421Kg/edit)
@@ -192,7 +257,20 @@ In the terminal, try the following commands:
 - `actions` - List all registered service actions.
 - `call greeter.hello` - Call the `greeter.hello` action.
 - `call greeter.welcome --name John` - Call the `greeter.welcome` action with the `name` parameter.
-
+- `call "webhooks.trigger" --ipadr "192.12.445.55"` - Call the `webhooks.trigger` action with the `ipadr` parameter.
+o/p:
+┌───────────┬─────────────────┐
+│  (index)  │     Values      │
+├───────────┼─────────────────┤
+│   ipadr   │ '192.12.445.55' │
+│ timeStamp │  1626537496624  │
+└───────────┴─────────────────┘
+┌───────────┬─────────────────┐
+│  (index)  │     Values      │
+├───────────┼─────────────────┤
+│   ipadr   │ '192.12.445.55' │
+│ timeStamp │  1626537496624  │
+└───────────┴─────────────────┘
 
 ### Useful links
 

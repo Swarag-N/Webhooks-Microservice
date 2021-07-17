@@ -2,7 +2,7 @@
     "source": {
         "includePattern": ".+\\.js(doc|x)?$",  
         "include": ["."],                      
-        "exclude": ["node_modules"] 
+        "exclude": ["."] 
     },
     "plugins": ["plugins/markdown","node_modules/jsdoc-tsimport-plugin/index.js"],
     "templates": {

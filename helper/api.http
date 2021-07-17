@@ -8,10 +8,21 @@ Content-Length: 30
 {
     "ip":"126.183.76.98"
 }
+###
+
+# Server 1
+POST  / HTTP/1.1
+Host: localhost:4000
+Content-Type: application/json
+Content-Length: 30
+
+{
+    "ip":"126.183.76.98"
+}
 
 ###
 # Server 2
-GET / HTTP/1.1
+POST  / HTTP/1.1
 Host: localhost:4001
 Content-Type: application/json
 Content-Length: 29
@@ -22,7 +33,7 @@ Content-Length: 29
 ###
 
 #Server 3
-GET / HTTP/1.1
+POST  / HTTP/1.1
 Host: localhost:4002
 Content-Type: application/json
 Content-Length: 30
@@ -33,7 +44,7 @@ Content-Length: 30
 ###
 
 #Server 4
-GET / HTTP/1.1
+POST  / HTTP/1.1
 Host: localhost:4003
 Content-Type: application/json
 Content-Length: 31
@@ -44,7 +55,7 @@ Content-Length: 31
 ###
 
 #Server 5
-GET / HTTP/1.1
+POST  / HTTP/1.1
 Host: localhost:4004
 Content-Type: application/json
 Content-Length: 30

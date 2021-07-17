@@ -2,18 +2,20 @@ const http = require("http");
 // const qs = require("querystring");
 
 const requestListener = function (req, res) {
-    
-	console.log(req.hostname);
-	let body = "";
-	req.on("data", chunk => {
-		body += chunk.toString(); // convert Buffer to string
-	});
-	req.on("end", () => {
-		// console.log(qs.parse(body))
-		console.table(JSON.parse(body));
-	});
-	res.writeHead(200);
-	res.end("Hello, World!");
+	if (req.method=="GET"){
+		res.end("Health Check");	
+	}else{
+		let body = "";
+		req.on("data", chunk => {
+			body += chunk.toString(); // convert Buffer to string
+		});
+		req.on("end", () => {
+			// console.log(qs.parse(body))
+			console.table(JSON.parse(body));
+		});
+		res.writeHead(200);
+		res.end("Hello, World!");
+	}
 };
 
 
