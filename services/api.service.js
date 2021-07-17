@@ -3,6 +3,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 
+/**
+ * 
+ * @description Express API Service acts as a API GATEWAY
+ */
 module.exports = {
 	name: "api",
 
@@ -14,6 +18,11 @@ module.exports = {
 		
 	},
 
+
+	/**
+	 * 
+	 * Service Methods
+	 */
 	methods:{
 		initRoutes(app) {
 			app.get("/register", this.registerWebHook);
@@ -45,6 +54,19 @@ module.exports = {
 
 		},
 
+		/**
+		 * List of Registered WebHooks
+		 * 
+		 * @param {Request} req 
+		 * @param {Response} res
+		 * 
+		 * @returns 
+		 */
+		 async listWebHooks (req, res) {
+			const {pageSize} = this.settings;
+			const str = await this.broker.call("webhooks.list",{pageSize}); 
+			res.send({str,message:`${this.broker.nodeid}`});
+		},
 
 		/**
 		 * 
@@ -72,20 +94,6 @@ module.exports = {
 
 		
 		/**
-		 * List of Registered WebHooks
-		 * 
-		 * @param {Request} req 
-		 * @param {Response} res
-		 * 
-		 * @returns 
-		 */
-		async listWebHooks (req, res) {
-			const {pageSize} = this.settings;
-			const str = await this.broker.call("webhooks.list",{pageSize}); 
-			res.send({str,message:`${this.broker.nodeid}`});
-		},
-
-		/**
 		 * Delete a Regitered WebHook
 		 * 
 		 * @param {Request} req 
@@ -112,14 +120,23 @@ module.exports = {
 		async trigger(req,res){
 			try{
 				const ipadr = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-				await this.broker.call("webhooks.trigger",{ipadr});
-				res.send({message:"Hey User", ipadr});
+				const obj = await this.broker.call("webhooks.trigger",{ipadr}, { timeout: 100000 });
+				res.send({message:"Hey User", obj});
 			}catch(error){
 				res.send(error);
 			}
 		}
 	},
 
+	/**
+	 * 
+	 * @description Life Cycle methods to start Express App 
+	 */
+
+	/**
+	 * 
+	 * Service created lifecycle event handler
+	 */
 	created(){
 		const app = express();
 		app.use(bodyParser.urlencoded({ extended: false }));
@@ -128,6 +145,11 @@ module.exports = {
 		this.app = app;
 	},
 	
+
+	/**
+	 * 
+	 * Service started lifecycle event handler
+	 */
 	started() {
 
 		/**
@@ -141,7 +163,10 @@ module.exports = {
 		});
 
 	},
-
+	
+	/**
+	 * Service stopped lifecycle event handler
+	 */
 	stopped() {
 		if (this.app.listening) {
 			this.app.close(err => {
