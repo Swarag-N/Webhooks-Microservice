@@ -24,6 +24,7 @@ module.exports = {
 	settings: {
 		// Trigger Batch Size
 		BATCH_SIZE : 10,
+		// Number of Retries before classifying as a failed 
 		RETRY_COUNT: 3,
 	},
 
@@ -40,7 +41,7 @@ module.exports = {
 		 * @param {WebHooks[]} webHooksArray 
 		 * @param {Integer} chunkSize 
 		 * 
-		 * @description Categrorize the WebHooksArray to chunkSize for concurent Requests
+		 * @description Categrorize the WebHooksArrays of BATCH_SIZE
 		 * 
 		 * @returns {WebHooks[][]} WebHooks as Batches
 		 */
@@ -60,6 +61,10 @@ module.exports = {
 		/**
 		 * 
 		 * @param { Response[] } responseArray
+		 * 
+		 * @description classify webhooks into successful and failed requests    
+		 * 
+		 * @returns {success:WebHook[],failed:WebHook[]}
 		 */
 		groupResponses(responseArray) {
 			
@@ -82,6 +87,7 @@ module.exports = {
 		 * @param {WebHooks[]} webHooksArray 
 		 * @param {String} postData - IP Address of Client
 		 *  
+		 * @description Make API Requests
 		 * 
 		 * @returns {WebHooks{_id}[] success, WebHooks{_id}[] failed }  
 		 */
@@ -97,7 +103,8 @@ module.exports = {
 							}				
 							return {success:flag,hookURL,_id,name};
 						})
-						.catch(err=>({success:false,hookURL,_id,name}));
+						// eslint-
+						.catch((err)=>({success:false,hookURL,_id,name}));
 				}
 			);
 
@@ -105,8 +112,15 @@ module.exports = {
 			return this.groupResponses(responses);
 		},
 
-
+		/**
+		 * 
+		 * @param {WebHook[]} webHooks 
+		 * @param {{ipadr,timeStamp}} postData
+		 * 
+		 * @returns Hook Trigger Report 
+		 */
 		async initateProcessing(webHooks,postData){
+
 			const {BATCH_SIZE,RETRY_COUNT} = this.settings; 
 			let chunks = await this.chunkWebHooks(webHooks,BATCH_SIZE);
 			let failedRequests = [];
@@ -133,7 +147,7 @@ module.exports = {
 			 * 
 			 * }
 			 */
-			let retryRespones = {successRequests};
+			let trigger_Report  = {successRequests};
 
 			for(let i=1;i<RETRY_COUNT;i++){
 				let failedChunks = this.chunkWebHooks(failedRequests,BATCH_SIZE);
@@ -143,15 +157,35 @@ module.exports = {
 				retryResponses.forEach(batch=>{
 					const {success,failed} = batch;
 					failedRequests.push(...failed);
-					retryRespones[`retrySuccess${i}`] =success;
+					trigger_Report [`retrySuccess${i}`] =success;
 				});
 			}
 
-			retryRespones["failed"]=failedRequests;
-			return retryRespones;
+			trigger_Report ["failed"]=failedRequests;
+			return trigger_Report ;
 		},
 
+		async seedDB(){
+			let webHooks = [];
+			for(let i=0;i<5;i++){
+				let tempWH = {
+					name:`Server#${i}`,
+					hookURL:`http://localhost:400${i}`
+				};
+				webHooks.push(tempWH);
+			}
+
+			let newWebHooks = await  this.adapter.insertMany(webHooks);
+			newWebHooks.forEach(hook=>{
+				this.logger.info(hook);
+			});
+		}
+
 		
+	},
+
+	started() {
+		this.seedDB();
 	},
 
 	/**
@@ -166,14 +200,16 @@ module.exports = {
 	 */
 	actions: {
 
+
 		/**
-		 * DbService Mixin of 
-		 * Molecuar Js Provides 
-		 * 
-		 * Register alias of Create
-		 * Update 
-		 * Delete
-		 * List
+		 * The "moleculer-db" mixin registers the following actions:
+		 *  - list
+		 *  - find
+		 *  - count
+		 *  - create  (alias Register) 
+		 *  - insert
+		 *  - update
+		 *  - remove
 		 */
 
 		/**
@@ -196,8 +232,12 @@ module.exports = {
 			async handler(ctx) {
 				try{
 					const {_id,name,hookURL} = ctx.params;
+					/** 
+					 * Molecular Adapter of Mongoose skipped the the options parametrt
+					 * to avoid code breaking, action validator is used 
+					*/
 					if(hookURL){
-						console.log(validUrl.isWebUri(hookURL))
+						console.log(validUrl.isWebUri(hookURL));
 						if (!validUrl.isWebUri(hookURL)){
 							throw new Error("Hook Not Proper");
 						}
@@ -238,10 +278,9 @@ module.exports = {
 					const timeStamp = new Date().getTime();
 					const webHooks = await this.adapter.find({});
 					let data = await this.initateProcessing(webHooks,{ipadr,timeStamp});
-					
 					return data;
 				} catch (error) {
-					console.log(error);
+					throw(error);
 				}				
 			}
 		}

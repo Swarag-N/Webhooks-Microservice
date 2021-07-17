@@ -97,11 +97,11 @@ _Basic HTTP Servers to capture the response_
 ```bash
 npm run targets
 ```
-Open the http://localhost:4000/ URL in your browser.
-Open the http://localhost:4001/ URL in your browser.
-Open the http://localhost:4002/ URL in your browser.
-Open the http://localhost:4003/ URL in your browser.
-Open the http://localhost:4004/ URL in your browser.
+- Open the http://localhost:4000/ URL in your browser.
+- Open the http://localhost:4001/ URL in your browser.
+- Open the http://localhost:4002/ URL in your browser.
+- Open the http://localhost:4003/ URL in your browser.
+- Open the http://localhost:4004/ URL in your browser.
 
 ## Tasks
 
@@ -109,7 +109,7 @@ Open the http://localhost:4004/ URL in your browser.
     - [x]  Molecular
 - [x]  Understand Problem Statement
 - [x]  Development
-- [ ] DB Seed
+- [X] DB Seed
 - [x] Add WebHook Servers 
 
 ## Development

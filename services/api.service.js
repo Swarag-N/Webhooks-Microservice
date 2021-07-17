@@ -15,6 +15,7 @@ module.exports = {
 		port: process.env.PORT || 3000,
 		log4XXResponses: true,
 		pageSize: 50,
+		maxRequestTimeOut:  5 * 1000// 5 Seconds :grin: 
 		
 	},
 
@@ -27,7 +28,7 @@ module.exports = {
 	 * 
 	 * Service created lifecycle event handler
 	 */
-	 created(){
+	created(){
 		const app = express();
 		app.use(bodyParser.urlencoded({ extended: false }));
 		app.use(bodyParser.json());
@@ -112,7 +113,7 @@ module.exports = {
 		 * 
 		 * @returns {WebHook[]} 
 		 */
-		 async listWebHooks (req, res) {
+		async listWebHooks (req, res) {
 			const {pageSize} = this.settings;
 			const str = await this.broker.call("webhooks.list",{pageSize}); 
 			res.send({str,message:`${this.broker.nodeid}`});
@@ -130,10 +131,7 @@ module.exports = {
 		async update (req,res){
 			try{
 				const {_id,name,hookURL} = req.body;
-				/**
-				 * Custom Update Actions Mongoose Support Update Validation,
-				 *  where as DbService API doesnt give option 
-				 */
+				//  default Update Action does not supported Mongoose Update Validation, 
 				const UpdatedWebHook = await this.broker.call("webhooks.validateAndUpdate",{_id,name,hookURL});
 				res.send({message:"New Hook Updated", UpdatedWebHook});
 			}catch(err){
@@ -168,11 +166,12 @@ module.exports = {
 		 */
 		async trigger(req,res){
 			try{
+				const {maxRequestTimeOut} = this.settings;
 				const ipadr = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-				const obj = await this.broker.call("webhooks.trigger",{ipadr}, { timeout: 100000 });
-				res.send({message:"Hey User", obj});
+				const report = await this.broker.call("webhooks.trigger",{ipadr}, { timeout: maxRequestTimeOut });
+				res.send({message:"Trigger Report", report});
 			}catch(error){
-				res.send(error);
+				res.send({message:error.message});
 			}
 		}
 	},

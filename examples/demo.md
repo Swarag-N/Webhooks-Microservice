@@ -210,8 +210,8 @@ curl --location --request GET 'http://localhost:3000/ip'
 ### Sample Response
 ```json
 {
-    "message": "Hey User",
-    "obj": {
+    "message": "Trigger Report",
+    "report": {
         "successRequests": [
             {
                 "success": true,
