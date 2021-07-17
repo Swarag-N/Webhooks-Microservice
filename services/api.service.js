@@ -4,12 +4,18 @@ const express = require("express");
 const bodyParser = require("body-parser");
 
 /**
- * 
+ * @typedef {import('moleculer').Context} Context Moleculer's Context
+ * @typedef {import('moleculer').Service } Service Moleculer's Context
+ */
+
+
+/**
+ * @module APIService
  * @description Express API Service acts as a API GATEWAY
  */
 module.exports = {
 	name: "api",
-
+	
 	settings: {
 		// Exposed port
 		port: process.env.PORT || 3000,
@@ -20,13 +26,17 @@ module.exports = {
 	},
 
 	/**
+	 * Life Cycle methods to start Express App
 	 * 
-	 * @description Life Cycle methods to start Express App 
+	 * created : Start App
+	 * started : Load App
+	 * stopped	: Load App
 	 */
 
 	/**
-	 * 
-	 * Service created lifecycle event handler
+	 * Service Created lifecycle event handler
+	 *
+	 * @memberof module.APIService
 	 */
 	created(){
 		const app = express();
@@ -40,13 +50,11 @@ module.exports = {
 	/**
 	 * 
 	 * Service started lifecycle event handler
+	 *
+	 * @memberof module.APIService
 	 */
 	started() {
 
-		/**
-		 * 
-		 * @function listens on PORT
-		 */
 		this.app.listen(Number(this.settings.port), err => {
 			if (err)
 				return this.broker.fatal(err);
@@ -57,6 +65,8 @@ module.exports = {
 	
 	/**
 	 * Service stopped lifecycle event handler
+	 *
+	 *  @memberof module.APIService
 	 */
 	stopped() {
 		if (this.app.listening) {
@@ -71,7 +81,6 @@ module.exports = {
 
 
 	/**
-	 * 
 	 * Service Methods
 	 */
 	methods:{
@@ -88,14 +97,21 @@ module.exports = {
 		 * 
 		 * Register WebHook
 		 * 
-		 * @param {Request} req
-		 * @param {Response} res
-		 * 
-		 * @returns New Web Hook ID
+		 * @param {express.Request} req client req
+		 * @param {express.Response} res response
+		 * @returns {WebHook._id} New Web Hook ID
 		 */
 		async registerWebHook (req,res){
 			try{
 				const {name,hookURL} = req.body;
+				/**
+				 * WebHook
+				 * 
+				 * @typedef {object} WebHook
+				 * @property {string} name - WebHook name
+				 * @property {string} hookURL - Webhook's Target URL
+				 * @property {string} _id - WebHook's ID.
+				 */
 				const newWebHook = await this.broker.call("webhooks.create",{name,hookURL});
 				const {_id } = newWebHook;
 				res.send({message:"New Hook Added", _id});
@@ -108,10 +124,9 @@ module.exports = {
 		/**
 		 * List of Registered WebHooks
 		 * 
-		 * @param {Request} req 
-		 * @param {Response} res
-		 * 
-		 * @returns {WebHook[]} 
+		 * @param {express.Request} req client req
+		 * @param {express.Response} res response
+		 * @returns {WebHook[]} Arrayof WebHooks 
 		 */
 		async listWebHooks (req, res) {
 			const {pageSize} = this.settings;
@@ -123,9 +138,8 @@ module.exports = {
 		 * 
 		 * Update WebHook
 		 * 
-		 * @param {Request} req
-		 * @param {Response} res
-		 * 
+		 * @param {express.Request} req client req
+		 * @param {express.Response} res response
 		 * @returns {WebHook} Updated WebHook
 		 */
 		async update (req,res){
@@ -143,9 +157,8 @@ module.exports = {
 		/**
 		 * Delete a Regitered WebHook
 		 * 
-		 * @param {Request} req 
-		 * @param {Response} res
-		 * 
+		 * @param {express.Request} req client req
+		 * @param {express.Response} res response
 		 * @returns {WebHook} Deleted WebHook
 		 */
 		async delete (req,res){
@@ -161,8 +174,8 @@ module.exports = {
 		/**
 		 * Initaites the Trigger Funtionality
 		 * 
-		 * @param {Request} req 
-		 * @param {Response} res 
+		 * @param {express.Request} req client req
+		 * @param {express.Response} res response
 		 */
 		async trigger(req,res){
 			try{

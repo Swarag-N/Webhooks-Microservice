@@ -27,7 +27,7 @@ module.exports = {
 		/**
 		 * Say a 'Hello' action.
 		 *
-		 * @returns
+		 * @returns Hello
 		 */
 		hello: {
 			rest: {
@@ -42,14 +42,17 @@ module.exports = {
 		/**
 		 * Welcome, a username
 		 *
-		 * @param {String} name - User name
+		 * @param {string} name - User name
 		 */
 		welcome: {
 			rest: "/welcome",
 			params: {
 				name: "string"
 			},
-			/** @param {Context} ctx  */
+			/** 
+			 * @param {Context} ctx  action context
+			 * @returns {string} Welcome Message 
+			 */
 			async handler(ctx) {
 				return `Welcome, ${ctx.params.name}`;
 			}

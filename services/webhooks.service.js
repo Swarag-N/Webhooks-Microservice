@@ -1,13 +1,27 @@
 "use strict";
 const DbService = require("moleculer-db");
 const MongooseAdapter = require("moleculer-db-adapter-mongoose");
+
+/**
+ * WebHook
+ * 
+ * @typedef {object} WebHook
+ * @property {string} name - WebHook name
+ * @property {string} hookURL - Webhook's Target URL
+ * @property {string} _id - WebHook's ID.
+ */
 const Webhook = require("../models/webhook.model");
 const validUrl = require("valid-url");
 const axios = require("axios");
+
 /**
  * @typedef {import('moleculer').Context} Context Moleculer's Context
  */
 
+/**
+ * @module WebHooksService
+ * @description WebHook Service
+ */
 module.exports = {
 	name: "webhooks",
 	mixins: [DbService],
@@ -38,12 +52,10 @@ module.exports = {
 		/**
 		 * chunkWebHooks 
 		 * 
-		 * @param {WebHooks[]} webHooksArray 
-		 * @param {Integer} chunkSize 
-		 * 
-		 * @description Categrorize the WebHooksArrays of BATCH_SIZE
-		 * 
-		 * @returns {WebHooks[][]} WebHooks as Batches
+		 * @param {WebHook[]} webHooksArray Array of webHooks
+		 * @param {number} chunkSize BATCH_SIZE 
+		 * @description Categrorize the WebHookArrays of BATCH_SIZE
+		 * @returns {WebHook[][]} WebHooks as Batches
 		 */
 		chunkWebHooks(webHooksArray, chunkSize){
 			let chunks = [];
@@ -59,12 +71,12 @@ module.exports = {
 		},
 
 		/**
-		 * 
-		 * @param { Response[] } responseArray
-		 * 
-		 * @description classify webhooks into successful and failed requests    
-		 * 
-		 * @returns {success:WebHook[],failed:WebHook[]}
+		 * @typedef {object} WebHooksGrouped
+		 * @property {Webhook[]} success WebHook Repsponse Status Success
+		 * @property {Webhook[]} failed WebHook Repsponse Status failed
+		 * @param { object[] } responseArray Axios Server Response
+		 * @description classify webhooks into successful and failed requests
+		 * @returns {WebHooksGrouped} Grouped WebHooks 
 		 */
 		groupResponses(responseArray) {
 			
@@ -84,12 +96,10 @@ module.exports = {
 
 		/**
 		 * 
-		 * @param {WebHooks[]} webHooksArray 
-		 * @param {String} postData - IP Address of Client
-		 *  
+		 * @param {WebHook[]} webHooksArray Webhook
+		 * @param {PostData} postData - IP Address of Client
 		 * @description Make API Requests
-		 * 
-		 * @returns {WebHooks{_id}[] success, WebHooks{_id}[] failed }  
+		 * @returns {WebHooksGrouped} Axios Request Respones
 		 */
 		async makeRequests(webHooksArray,postData){
 			let prom = webHooksArray.map(
@@ -103,8 +113,9 @@ module.exports = {
 							}				
 							return {success:flag,hookURL,_id,name};
 						})
-						// eslint-
-						.catch((err)=>({success:false,hookURL,_id,name}));
+						/*eslint-disable */
+						.catch((error)=>({success:false,hookURL,_id,name}));
+						/*eslint-enable */
 				}
 			);
 
@@ -113,11 +124,12 @@ module.exports = {
 		},
 
 		/**
-		 * 
-		 * @param {WebHook[]} webHooks 
-		 * @param {{ipadr,timeStamp}} postData
-		 * 
-		 * @returns Hook Trigger Report 
+		 * @typedef {object} PostData
+		 * @property {string} ipadr IP Adreess of User
+		 * @property {string} timeStamp timeStamp Of Request
+		 * @param {WebHook[]} webHooks WebHooks Registered  
+		 * @param {PostData} postData User Post Data
+		 * @returns {Report} Hook Trigger Report 
 		 */
 		async initateProcessing(webHooks,postData){
 
@@ -136,7 +148,16 @@ module.exports = {
 			});
 
 			/**
-			 * 
+			 * @typedef {object} Report
+			 * @property {WebHook[]} success  ArrayWebHooks of with Sucessfull response on first call 
+			 * @property {WebHook[]} retrySuccess1 ArrayWebHooks of with Sucessfull response on second call
+			 * @property {WebHook[]} retrySuccess2 ArrayWebHooks of with Sucessfull response on third call
+			 * @property {WebHook[]} retrySuccess3 ArrayWebHooks of with Sucessfull response on fourth call
+			 * .
+			 * .
+			 * .
+			 * @property {WebHook[]} retrySuccessRETRY_COUNT1 ArrayWebHooks of with Sucessfull response on <RETRY_COUNT-1>th call
+			 * @property {WebHook[]} failed ArrayWebHooks of with Failed response after retries
 			 * {
 			 * 		success:[],
 			 * 		retrySuccess1:[],
@@ -150,21 +171,38 @@ module.exports = {
 			let trigger_Report  = {successRequests};
 
 			for(let i=1;i<RETRY_COUNT;i++){
+
+				// Grouping Failed Requeste as ArraySize of BATCH_SIZE 
 				let failedChunks = this.chunkWebHooks(failedRequests,BATCH_SIZE);
+				
+				// flushing all failed requests
 				failedRequests = [];
+
+				// Retry for making a request
 				let retryRequests = failedChunks.map(subset=>(this.makeRequests(subset,postData)));
 				let retryResponses = await Promise.all(retryRequests);
+
+				// Classify Requests into failed and success 
 				retryResponses.forEach(batch=>{
 					const {success,failed} = batch;
+					// Failed Requests
 					failedRequests.push(...failed);
+					// Successfull Requests
 					trigger_Report [`retrySuccess${i}`] =success;
 				});
+
 			}
 
+			// Failed Responses
 			trigger_Report ["failed"]=failedRequests;
+
 			return trigger_Report ;
 		},
 
+		/**
+		 * 
+		 * Seed DB with Target Servers
+		 */
 		async seedDB(){
 			let webHooks = [];
 			for(let i=0;i<5;i++){
@@ -216,9 +254,10 @@ module.exports = {
 		 * 
 		 * Validate and Update the Values of WebHooks
 		 * 
-		 * @param {_id}	WebHookObjectID
-		 * @param {url}	WebHookURL
-		 * @param {name} WebHookURL
+		 * @param {_id}	_id
+		 * @param {string}	hookURL
+		 * @param {string} name
+		 * @returns {WebHook} Updated WebHook
 		 */
 		validateAndUpdate:{
 			params:{
@@ -227,15 +266,16 @@ module.exports = {
 				name:"string"
 			},
 			/** 
-			 * @param {Context} ctx 
-			 * */
+			 * @param {Context} ctx Moelculer Action Context 
+			 * @returns {WebHook} Updated WebHook
+			 */
 			async handler(ctx) {
 				try{
 					const {_id,name,hookURL} = ctx.params;
 					/** 
 					 * Molecular Adapter of Mongoose skipped the the options parametrt
 					 * to avoid code breaking, action validator is used 
-					*/
+					 */
 					if(hookURL){
 						console.log(validUrl.isWebUri(hookURL));
 						if (!validUrl.isWebUri(hookURL)){
@@ -261,7 +301,7 @@ module.exports = {
 		 * resolve all requests
 		 * 
 		 * Caviat: Reponse Object of Axios Dont Contain Context 
-		 * @param {String} IPAddress - User
+		 * @param {string} IPAddress - User
 		 */
 		trigger:{
 			params: {
@@ -269,8 +309,9 @@ module.exports = {
 			},
 
 			/** 
-			 * @param {Context} ctx  
-			 * */
+			 * @param {Context} ctx Moelculer Action Context  
+			 * @returns {Report} Report
+			 */
 			async handler(ctx) {
 				// Use Axios to Send IPaddres
 				try {

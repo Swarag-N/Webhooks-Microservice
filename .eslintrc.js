@@ -38,6 +38,10 @@ module.exports = {
 		],
 		"no-mixed-spaces-and-tabs": [
 			"warn"
-		]
-	}
+		],
+	},
+	"extends": ["plugin:jsdoc/recommended"],
+	"plugins": [
+		"jsdoc"
+	]
 };

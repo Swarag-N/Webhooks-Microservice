@@ -3,12 +3,14 @@
 let mongoose = require("mongoose");
 let Schema = mongoose.Schema;
 let validUrl = require("valid-url");
+
 /**
+ * WebHook
  * 
- * WebHook Schema
- *  - WebHook Name
- *  - WebHook TargetUrl
- *      - Validation 
+ * @typedef {object} WebHook
+ * @property {string} name - WebHook name
+ * @property {string} hookURL - Webhook's Target URL
+ * @property {string} _id - WebHook's ID.
  */
 let WebHookSchema = new Schema({
 	name:{
