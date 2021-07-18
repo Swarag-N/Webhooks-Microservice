@@ -1,6 +1,6 @@
 <h1 align="center"> Webhooks Microservice API </h1> <br>
 <p align="center">
-  <a href="">
+  <a href="/">
     <img alt="Webhooks Microservice API" title="Webhooks Microservice API" src="docs\assets\logo.png" width=250>
   </a>
 </p>
@@ -24,13 +24,14 @@
 
 - [Introduction](#introduction)
 - [Features](#features)
-- [Instructions to run](#instructions-to-run)
+- [Architecture](#architecture)
+- [Usage Instructions](#usage-instructions)
   - [Install](#install)
   - [Start locally](#start-locally)
   - [Start in Docker](#start-in-docker)
   - [Development locally](#development-locally)
   - [Target Server](#target-server)
-- [Testing Instructions](#testing-instructions)
+- [Check Routes](#check-routes)
   - [Locally](#locally)
   - [Docker Service](#docker-service)
 - [Tasks](#tasks)
@@ -41,8 +42,6 @@
   - [Services](#services)
   - [Actions](#actions)
   - [Resources](#resources)
-- [moleculer-micro](#moleculer-micro)
-  - [Usage](#usage)
   - [Useful links](#useful-links)
 - [NPM scripts](#npm-scripts)
 
@@ -52,6 +51,14 @@
 
 This is a Implementation Webhooks Service using `Moleculer` ( Progressive microservices framework for Node.js. ) and `Express` ( Back-End for Node.js )   
 
+
+In the terminal, try the following commands:
+- `nodes` - List all connected nodes.
+- `actions` - List all registered service actions.
+- `call greeter.hello` - Call the `greeter.hello` action.
+- `call greeter.welcome --name John` - Call the `greeter.welcome` action with the `name` parameter.
+- `call "webhooks.trigger" --ipadr "192.12.445.55"` - Call the `webhooks.trigger` action with the `ipadr` parameter.
+
 ## Features
 
 - Register, Update, Delete, and List  Web-Hooks
@@ -60,12 +67,20 @@ This is a Implementation Webhooks Service using `Moleculer` ( Progressive micros
     - on Update
 - Concurrent Requests
 
+## Architecture
+<a href="/">
+<img alt="Webhooks Microservice Architecture" title="Webhooks Microservice Architecture" src="docs\assets\Architecture.png" width=800>
+</a>
 
-## Instructions to run
+## Usage Instructions
+
+This is a [Moleculer](https://moleculer.services/)-based microservices project. Generated with the [Moleculer CLI](https://moleculer.services/docs/0.14/moleculer-cli.html).
+
+[![Moleculer](https://badgen.net/badge/Powered%20by/Moleculer/0e83cd)](https://moleculer.services)
 ### Install
 ```bash
-git clone https://github.com/Swarag-N/DyteMicroServiceTask.git
-cd DyteMicroServiceTask
+git clone https://github.com/Swarag-N/Webhooks-Microservice.git
+cd Webhooks-Microservice
 ```
 
 ### Start locally
@@ -107,7 +122,7 @@ npm run targets
 - Open the http://localhost:4003/ URL in your browser.
 - Open the http://localhost:4004/ URL in your browser.
 
-## Testing Instructions
+## Check Routes
 
 ### Locally
 
@@ -140,7 +155,8 @@ After starting, open the http://localhost:3000/list URL in your browser.
 
 `call "webhooks.trigger" --ipadr "192.12.445.55"` - Call the `webhooks.trigger` action with the `ipadr` parameter
 
-o/p:
+o/p
+```bash
 ┌───────────┬─────────────────┐
 │  (index)  │     Values      │
 ├───────────┼─────────────────┤
@@ -153,6 +169,7 @@ o/p:
 │   ipadr   │ '192.12.445.55' │
 │ timeStamp │  1626537496624  │
 └───────────┴─────────────────┘
+```
 
 ### Docker Service
 
@@ -200,41 +217,35 @@ Two Servers
 ### Services
 
 Microservice using Moleculer Framework with a Backend using Express framework implemneted 
-Webhooks funtionality 
+Webhooks funtionality. 
 
-Check `docs\demo.md`
+Check `docs\demo.md` for API response for bellow EndPoints 
 
 - [x]  `API Service`
     - [x]  Routes `admin`
-        - [x]  Create : `/register`
-        - [x]  Read   :  `/list`
-        - [x]  Update: `/update`
-        - [x]  Delete:  `/delete`
-    - [x]  Trigger `/ip`
+        - [x]  Create : `/register` add new webhooks
+        - [x]  Read   : `/list` list registerd webhooks
+        - [x]  Update : `/update` update registerd webhook
+        - [x]  Delete : `/delete` delete registerd webhook
+    - [x]  Trigger : `/ip` initate requests to all registerd webhooks    
         - [x]  Calls the **`trigger`** action exposed by the **`webhooks microservice`**.
 - [x]  **`webhooks microservice`**
     - [x]  Actions
         - [x]  **`webhooks.register`**
+          - [x] URL Validation before registering Webhook
         - [x]  **`webhooks.list`**
-        - [x]  **`webhooks.trigger`**
         - [x]  **`webhooks.update`**
+          - [x] URL Validation before updating Webhook
         - [x]  **`webhooks.delete`**
-    - [x]  Methods
-        - [x]  Concurrent API Request
-- [x]  Bonus
-    - [x]  **`webhooks.trigger`  Retry**
-    - [x]  `Dockerize` the Backend and the Moleculer microservice
-    - [x]  WebHook Target URL Validation
-
+        - [x]  **`webhooks.trigger`**
+          - [x] Initate requests concurrently in batches 
 
 ### Actions
 <a href="">
-    <img alt="Actions of Webhooks Microservice API" title="Actions" src="docs\assets\Actions.png" width=250>
+    <img alt="Actions of Webhooks Microservice API" title="Actions" src="docs\assets\Actions.png" width=800>
 </a>
 
 ### Resources
-
-[Dyte Problem Statements](https://docs.google.com/document/d/1iI_rj9f-WCPZOr6DusCdmYacxpXRXt3WwYoYMm421Kg/edit)
 
 [An Introduction to Moleculer JS](https://www.youtube.com/watch?v=t4YR6MWrugw)
 
@@ -242,35 +253,6 @@ Check `docs\demo.md`
 
 [What are webhooks?](https://zapier.com/blog/what-are-webhooks/)
 
-
-## moleculer-micro
-This is a [Moleculer](https://moleculer.services/)-based microservices project. Generated with the [Moleculer CLI](https://moleculer.services/docs/0.14/moleculer-cli.html).
-
-[![Moleculer](https://badgen.net/badge/Powered%20by/Moleculer/0e83cd)](https://moleculer.services)
-### Usage
-Start the project with `npm run dev` command. 
-After starting, open the http://localhost:3000/ URL in your browser. 
-On the welcome page you can test the generated services via API Gateway and check the nodes & services.
-
-In the terminal, try the following commands:
-- `nodes` - List all connected nodes.
-- `actions` - List all registered service actions.
-- `call greeter.hello` - Call the `greeter.hello` action.
-- `call greeter.welcome --name John` - Call the `greeter.welcome` action with the `name` parameter.
-- `call "webhooks.trigger" --ipadr "192.12.445.55"` - Call the `webhooks.trigger` action with the `ipadr` parameter.
-o/p:
-┌───────────┬─────────────────┐
-│  (index)  │     Values      │
-├───────────┼─────────────────┤
-│   ipadr   │ '192.12.445.55' │
-│ timeStamp │  1626537496624  │
-└───────────┴─────────────────┘
-┌───────────┬─────────────────┐
-│  (index)  │     Values      │
-├───────────┼─────────────────┤
-│   ipadr   │ '192.12.445.55' │
-│ timeStamp │  1626537496624  │
-└───────────┴─────────────────┘
 
 ### Useful links
 
